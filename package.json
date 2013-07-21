@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "express": ">=0.1",
+    "request": ">=0.1"
+  }
+}
