@@ -4,6 +4,8 @@ var app = express(express.logger());
 var indexPage;
 var request = require('request');
 
+// General statistics for giving the user an idea of the current Coinbase market value.
+// "time", "buytotal", "selltotal"
 var statistics = [];
 
 /*
@@ -79,11 +81,6 @@ app.get('/', function(request, response) {
 });
 
 app.get('/stats', function(request, response) {
-  /*
-   * TODO
-   * This is a prototype, and as such needs to be re-written
-   * to include client-side templating and the works.
-   */
   var numElements = 500;
   
   var getLastNElements = function(arr, n) {
