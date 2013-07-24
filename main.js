@@ -2,7 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var app = express(express.logger());
 var indexPage;
-var request = require('request');
+var libRequest = require('request');
 
 // General statistics for giving the user an idea of the current Coinbase market value.
 // "time", "buytotal", "selltotal"
@@ -14,50 +14,37 @@ var statistics = [];
  * On failure, callback is called with the status code and error result as two total parameters.
  * Valid actions are 'buy' and 'sell'
  */
-var checkTradePrice = function(action, callback) {
-  request('https://coinbase.com/api/v1/prices/' + action, function (error, response, body) {
+var checkTradePrice = function(callback) {
+  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats/30s', function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      callback(JSON.parse(response.body).total.amount);
+      callback(JSON.parse(response.body));
     } else {
       callback(response.statusCode, error);
     }
   });
-}
+};
 
-var loadMarketPrice = function() {
-  var buytotal;
-  var selltotal;
-  
-  var updateStatistics = function(buyval, sellval) {
-    statistics.push({"time": Date.now(), "buytotal": buyval, "selltotal": sellval});
+var loadMarketPrice = function() {  
+  var updateStatistics = function(buytotal, selltotal, time) {
+    statistics.push({"time": time, "buytotal": buytotal, "selltotal": selltotal});
     console.log('[' + Date.now() + '] Pushing statistic... ');
   }
   
-  var checkBuyTradePriceOnComplete = function(result, err) {
+  checkTradePrice(function(body, err) {
     if(err) {
-      var buyErrMsg = 'ERROR: failed to check buy exchange price';
-      console.log(buyErrMsg);
-      throw new Exception(buyErrMsg);
+      console.log('Error while checking trade price: ' + err);
+      throw new Exception('Error while checking trade price: ' + err);
     }
     
-    buytotal = result;
-    checkTradePrice('sell', checkSellTradePriceOnComplete);
-  }
+    var last = body[body.length - 1];
+    var buytotal = last.buytotal;
+    var selltotal = last.selltotal;
+    var time = last.time;
+    updateStatistics(buytotal, selltotal, time);
+  });
   
-  var checkSellTradePriceOnComplete = function(result, err) {
-    if(err) {
-      var sellErrMsg = 'ERROR: failed to check sell exchange price';
-      console.log(sellErrMsg);
-      throw new Exception(sellErrMsg);
-    }
-    
-    selltotal = result;
-    updateStatistics(buytotal, selltotal);
-  }
-  
-  checkTradePrice('buy', checkBuyTradePriceOnComplete);
   setTimeout(loadMarketPrice, 30000);
-}
+};
 
 var indexLoadFail = function(e) {
   console.log('Problem loading index.html -- "' + e + '"');
@@ -81,16 +68,13 @@ app.get('/', function(request, response) {
 });
 
 app.get('/stats', function(request, response) {
-  var numElements = 500;
-  
-  var getLastNElements = function(arr, n) {
-    return arr.slice(Math.max(arr.length - n, 0))
-  };
-  
-  // Display the last N statistics as JSON.
-  var output = getLastNElements(statistics, numElements);
-  
-  response.send(output);
+  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats/30s', function (err, res, bod) {
+    if (!err && res.statusCode == 200) {
+      response.send(res.body);
+    } else {
+      response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
+    }
+  });  
 });
 
 var port = process.env.PORT || 8080;
@@ -99,5 +83,5 @@ app.listen(port, function() {
   loadIndex();
   console.log("Listening on " + port);
   
-  loadMarketPrice();
+  //loadMarketPrice();
 });
