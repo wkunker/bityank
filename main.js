@@ -15,7 +15,7 @@ var statistics = [];
  * Valid actions are 'buy' and 'sell'
  */
 var checkTradePrice = function(callback) {
-  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats/30s', function (error, response, body) {
+  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats', function (error, response, body) {
     if (!error && response.statusCode == 200) {
       callback(JSON.parse(response.body));
     } else {
@@ -68,7 +68,7 @@ app.get('/', function(request, response) {
 });
 
 app.get('/stats', function(request, response) {
-  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats/30s', function (err, res, bod) {
+  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats', function (err, res, bod) {
     if (!err && res.statusCode == 200) {
       response.send(res.body);
     } else {

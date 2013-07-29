@@ -34,7 +34,7 @@
 
         // Set chart options
         var options = {'title':'Coinbase Exchange Rates',
-                       'width':960,
+                       'width':$(window).width(),
                        'height':540,
                        vAxis: {format:'$##.##'},
                        hAxis: {format: "HH:mm:ss"}
@@ -72,15 +72,13 @@
     <div class='subheading'>
       dead simple bitcoin investing
     </div>
+    
     <div class='statistics'>
       <div id='chart_div'>
       </div>
-      <div class='time'>
-      </div>
-      <div class='buytotal'>
-      </div>
-      <div class='selltotal'>
-      </div>
+    </div>
+    <div class='actions'>
+      <a href='javascript:void(0)'>Buy</a> | <a href='javascript:void(0)'>Sell</a>
     </div>
   </body>
 </html>
