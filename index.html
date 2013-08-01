@@ -50,7 +50,7 @@
           url: '/stats',
           type: "GET",
           success: function(json_data) {
-            drawChart(JSON.parse(json_data));
+            drawChart(json_data);
           },
           error: function() {
             $('#chat_div').html('Error loading Coinbase statistics -- please wait a moment.');

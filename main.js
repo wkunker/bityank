@@ -3,48 +3,9 @@ var fs = require('fs');
 var app = express(express.logger());
 var indexPage;
 var libRequest = require('request');
+var mongoose = require('mongoose');
 
-// General statistics for giving the user an idea of the current Coinbase market value.
-// "time", "buytotal", "selltotal"
-var statistics = [];
-
-/*
- * Makes a GET request to Coinbase.
- * On success, callback is called with the price as the only parameter.
- * On failure, callback is called with the status code and error result as two total parameters.
- * Valid actions are 'buy' and 'sell'
- */
-var checkTradePrice = function(callback) {
-  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats', function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      callback(JSON.parse(response.body));
-    } else {
-      callback(response.statusCode, error);
-    }
-  });
-};
-
-var loadMarketPrice = function() {  
-  var updateStatistics = function(buytotal, selltotal, time) {
-    statistics.push({"time": time, "buytotal": buytotal, "selltotal": selltotal});
-    console.log('[' + Date.now() + '] Pushing statistic... ');
-  }
-  
-  checkTradePrice(function(body, err) {
-    if(err) {
-      console.log('Error while checking trade price: ' + err);
-      throw new Exception('Error while checking trade price: ' + err);
-    }
-    
-    var last = body[body.length - 1];
-    var buytotal = last.buytotal;
-    var selltotal = last.selltotal;
-    var time = last.time;
-    updateStatistics(buytotal, selltotal, time);
-  });
-  
-  setTimeout(loadMarketPrice, 30000);
-};
+var Stats30s;
 
 var indexLoadFail = function(e) {
   console.log('Problem loading index.html -- "' + e + '"');
@@ -68,13 +29,13 @@ app.get('/', function(request, response) {
 });
 
 app.get('/stats', function(request, response) {
-  libRequest('http://bitcrank-17627.use1.actionbox.io:8888/stats', function (err, res, bod) {
-    if (!err && res.statusCode == 200) {
-      response.send(res.body);
+  Stats30s.find({}, {_id:0, __v:0}, function (err, stats) {
+    if (!err) {
+      response.send(stats);
     } else {
       response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
     }
-  });  
+  });
 });
 
 var port = process.env.PORT || 8080;
@@ -83,5 +44,11 @@ app.listen(port, function() {
   loadIndex();
   console.log("Listening on " + port);
   
-  //loadMarketPrice();
+  mongoose.connect("mongodb://user:password@ds037698.mongolab.com:37698/bityank");
+  var db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'connection error:'));
+  db.once('open', function callback () {
+    var statsSchema30s = mongoose.Schema({"time":Number, buytotal: Number, selltotal: Number});
+    Stats30s = mongoose.model('stats30s', statsSchema30s);
+  });
 });
