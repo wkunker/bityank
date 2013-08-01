@@ -1,8 +1,10 @@
 var express = require('express');
 var app = express(express.logger());
 var request = require('request');
+var mongoose = require('mongoose');
 
 var port = process.env.PORT || 8888;
+var Stats30s;
 
 // Max number of statistic elements that can be sent through /stats/*
 var numElements = 500;
@@ -40,7 +42,16 @@ var loadMarketPrice = function() {
   
   
   var updateStatistics = function(buyval, sellval) {
-    statistics.push({"time": Date.now(), "buytotal": buyval, "selltotal": sellval});
+    var stat = {"time": Date.now(), "buytotal": Number(buyval), "selltotal": Number(sellval)};
+    var statModel = new Stats30s(stat);
+    // Product is what was added to the db.
+    statModel.save(function(err, product) {
+      if(err) {
+        console.log('Problem uploading stat to mongo (\'' +
+                    stat.toString() + '\')');
+      }
+    });
+    statistics.push(stat);
     console.log('[' + Date.now() + '] Pushing statistic... ');
   }
   
@@ -80,5 +91,13 @@ app.get('/stats', function(request, response) {
 app.listen(port, function() {
   console.log("Listening on " + port);
   
-  loadMarketPrice();
+  mongoose.connect("mongodb://user:password@ds037698.mongolab.com:37698/bityank");
+  var db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'connection error:'));
+  db.once('open', function callback () {
+    var statsSchema30s = mongoose.Schema({"time":Number, buytotal: Number, selltotal: Number});
+    Stats30s = mongoose.model('stats30s', statsSchema30s);
+    
+    loadMarketPrice();
+  });
 });
