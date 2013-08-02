@@ -8,6 +8,13 @@ var config = require('./config.js');
 
 var Stats30s;
 
+// Max number of statistic elements that can be sent through /stats/*
+var numElements = 500;
+
+var getLastNElements = function(arr, n) {
+  return arr.slice(Math.max(arr.length - n, 0));
+};
+
 var indexLoadFail = function(e) {
   console.log('Problem loading index.html -- "' + e + '"');
   process.exit(1);
@@ -32,7 +39,7 @@ app.get('/', function(request, response) {
 app.get('/stats', function(request, response) {
   Stats30s.find({}, {_id:0, __v:0}, function (err, stats) {
     if (!err) {
-      response.send(stats);
+      response.send(getLastNElements(stats, numElements));
     } else {
       response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
     }

@@ -3,15 +3,11 @@ var app = express(express.logger());
 var request = require('request');
 var mongoose = require('mongoose');
 var config = require('./config.js');
-var shared = require('./shared.js');
 
 var port = process.env.PORT || 8888;
 var Stats30s;
 var Stats1hr;
 var statsSinceLastHrAvg = 0;
-
-// Max number of statistic elements that can be sent through /stats/*
-var numElements = 500;
 
 // Time between market checks in ms.
 var intervalTime = 30000;
@@ -58,8 +54,6 @@ var loadMarketPrice = function() {
       buysum += arrStats30s[i].buytotal;
       sellsum += arrStats30s[i].selltotal;
     }
-    
-    console.log(typeof arrStats30s[0].time);
     
     var rslt = {"timestart": Number(arrStats30s[0].time), "timeend": Number(arrStats30s[arrLen-1].time),
                 buytotal: buysum / arrLen, selltotal: sellsum / arrLen};
@@ -128,13 +122,6 @@ var loadMarketPrice = function() {
   checkTradePrice('buy', checkBuyTradePriceOnComplete);
   setTimeout(loadMarketPrice, intervalTime);
 }
-
-app.get('/stats', function(request, response) {
-  // Display the last N statistics as JSON.
-  var output = shared.getLastNElements(statistics, numElements);
-  
-  response.send(output);
-});
 
 app.listen(port, function() {
   console.log("Listening on " + port);
