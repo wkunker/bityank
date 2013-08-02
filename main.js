@@ -4,6 +4,7 @@ var app = express(express.logger());
 var indexPage;
 var libRequest = require('request');
 var mongoose = require('mongoose');
+var config = require('./config.js');
 
 var Stats30s;
 
@@ -44,7 +45,7 @@ app.listen(port, function() {
   loadIndex();
   console.log("Listening on " + port);
   
-  mongoose.connect("mongodb://user:password@ds037698.mongolab.com:37698/bityank");
+  mongoose.connect(config.dburl);
   var db = mongoose.connection;
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', function callback () {

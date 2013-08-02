@@ -2,6 +2,8 @@ var express = require('express');
 var app = express(express.logger());
 var request = require('request');
 var mongoose = require('mongoose');
+var config = require('./config.js');
+var shared = require('./shared.js');
 
 var port = process.env.PORT || 8888;
 var Stats30s;
@@ -18,9 +20,6 @@ var intervalTime = 30000;
 // "time", "buytotal", "selltotal"
 var statistics = [];
 
-var getLastNElements = function(arr, n) {
-  return arr.slice(Math.max(arr.length - n, 0));
-};
 /*
  * Makes a GET request to Coinbase.
  * On success, callback is called with the price as the only parameter.
@@ -28,6 +27,7 @@ var getLastNElements = function(arr, n) {
  * Valid actions are 'buy' and 'sell'
  */
 var checkTradePrice = function(action, callback) {
+  // Coinbase price check URL
   request('https://coinbase.com/api/v1/prices/' + action, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       callback(JSON.parse(response.body).total.amount);
@@ -86,7 +86,7 @@ var loadMarketPrice = function() {
                     err.toString() + '\')');
       } else {
         statistics.push(stat);
-        console.log('[' + Date.now() + '] Pushing statistic... ');
+        //console.log('[' + Date.now() + '] Pushing statistic... ');
         
         if(statsSinceLastHrAvg >= 120) {
           // Average the hour and add it to mongo.
@@ -131,7 +131,7 @@ var loadMarketPrice = function() {
 
 app.get('/stats', function(request, response) {
   // Display the last N statistics as JSON.
-  var output = getLastNElements(statistics, numElements);
+  var output = shared.getLastNElements(statistics, numElements);
   
   response.send(output);
 });
@@ -139,7 +139,7 @@ app.get('/stats', function(request, response) {
 app.listen(port, function() {
   console.log("Listening on " + port);
   
-  mongoose.connect("mongodb://user:password@ds037698.mongolab.com:37698/bityank");
+  mongoose.connect(config.dburl);
   var db = mongoose.connection;
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', function callback () {
