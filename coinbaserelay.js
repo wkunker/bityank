@@ -5,6 +5,8 @@ var mongoose = require('mongoose');
 
 var port = process.env.PORT || 8888;
 var Stats30s;
+var Stats1hr;
+var statsSinceLastHrAvg = 0;
 
 // Max number of statistic elements that can be sent through /stats/*
 var numElements = 500;
@@ -39,20 +41,66 @@ var loadMarketPrice = function() {
   var buytotal;
   var selltotal;
   
-  
+  // Updates mongo with the hourly average - accepts an array of all 30s stats for the hour (120 in total)
+  var updateStats1hr = function(arrStats30s) {
+    if(arrStats30s.length != 120) {
+      console.log("Error occured while calling updateStats1hr: 30s stats array wasn't 120 elements in length.");
+      throw "30s stats array wasn't 120 elements in length.";
+    }
+    
+    
+    
+    var buysum = 0;
+    var sellsum = 0;
+    var arrLen = arrStats30s.length;
+    
+    for(var i = 0; i < arrLen; i++) {
+      buysum += arrStats30s[i].buytotal;
+      sellsum += arrStats30s[i].selltotal;
+    }
+    
+    console.log(typeof arrStats30s[0].time);
+    
+    var rslt = {"timestart": Number(arrStats30s[0].time), "timeend": Number(arrStats30s[arrLen-1].time),
+                buytotal: buysum / arrLen, selltotal: sellsum / arrLen};
+    
+    var statModel = new Stats1hr(rslt);
+    statModel.save(function(err, product) {
+      if(err) {
+        console.log('Problem uploading stat to mongo (\'' +
+                    err.toString() + '\')');
+      } else {
+        console.log('Successfully uploaded hourly average (time: ' + Date.now() + ')');
+      }
+    });
+  }
   
   var updateStatistics = function(buyval, sellval) {
     var stat = {"time": Date.now(), "buytotal": Number(buyval), "selltotal": Number(sellval)};
     var statModel = new Stats30s(stat);
+      
     // Product is what was added to the db.
-    statModel.save(function(err, product) {
+    var behavior = function(err, product) {
       if(err) {
         console.log('Problem uploading stat to mongo (\'' +
-                    stat.toString() + '\')');
+                    err.toString() + '\')');
+      } else {
+        statistics.push(stat);
+        console.log('[' + Date.now() + '] Pushing statistic... ');
+        
+        if(statsSinceLastHrAvg >= 120) {
+          // Average the hour and add it to mongo.
+          // Pass last 120 30s stats to updateStats1hr
+          updateStats1hr(statistics.slice(statistics.length - 121, statistics.length - 1));
+          
+          statsSinceLastHrAvg = 0;
+        } else {
+          statsSinceLastHrAvg++;
+        }
       }
-    });
-    statistics.push(stat);
-    console.log('[' + Date.now() + '] Pushing statistic... ');
+    }
+      
+    statModel.save(behavior);
   }
   
   var checkBuyTradePriceOnComplete = function(result, err) {
@@ -96,7 +144,9 @@ app.listen(port, function() {
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', function callback () {
     var statsSchema30s = mongoose.Schema({"time":Number, buytotal: Number, selltotal: Number});
+    var statsSchema1hr = mongoose.Schema({"timestart":Number, "timeend":Number, buytotal: Number, selltotal: Number});
     Stats30s = mongoose.model('stats30s', statsSchema30s);
+    Stats1hr = mongoose.model('stats1hr', statsSchema1hr);
     
     loadMarketPrice();
   });
