@@ -104,6 +104,8 @@ var loadMarketPrice = function() {
           // Pass last 120 30s stats to updateStats1hr
           updateStats1hr(statistics.slice(statistics.length - 121, statistics.length - 1));
           
+          statistics.length = 0; // Clear the array so there won't be any long-term memory issues.
+          
           statsSinceLastHrAvg = 0;
         } else {
           statsSinceLastHrAvg++;
