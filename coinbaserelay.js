@@ -28,7 +28,11 @@ var checkTradePrice = function(action, callback) {
     if (!error && response.statusCode == 200) {
       callback(JSON.parse(response.body).total.amount);
     } else {
-      callback(response.statusCode, error);
+      if(error) {
+        callback(response.statusCode, error);
+      } else {
+        callback(null, response.statusCode);
+      }
     }
   });
 }

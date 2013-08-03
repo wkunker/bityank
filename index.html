@@ -53,7 +53,7 @@
         data.addColumn('number', 'Sell Total');
         
         for(var i = 0; i < json_data.length; i++) {
-          var d = new Date(json_data[i].timestart);
+          var d = new Date(json_data[i].timeend);
           data.addRow([
             d, Number(json_data[i].buytotal), Number(json_data[i].selltotal)
           ]);
