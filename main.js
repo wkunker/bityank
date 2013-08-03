@@ -36,7 +36,7 @@ app.get('/', function(request, response) {
   response.send(indexPage);
 });
 
-app.get('/stats', function(request, response) {
+app.get('/stats/30s', function(request, response) {
   Stats30s.find({}, {_id:0, __v:0}, function (err, stats) {
     if (!err) {
       response.send(getLastNElements(stats, numElements));

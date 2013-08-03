@@ -47,7 +47,7 @@
       
       var loadLatest = function() {
         $.ajax({
-          url: '/stats',
+          url: '/stats/30s',
           type: "GET",
           success: function(json_data) {
             drawChart(json_data);
