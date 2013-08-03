@@ -24,7 +24,7 @@
         for(var i = 0; i < json_data.length; i++) {
           var d = new Date(json_data[i].time);
           data.addRow([
-            d, parseFloat(json_data[i].buytotal), parseFloat(json_data[i].selltotal)
+            d, Number(json_data[i].buytotal), Number(json_data[i].selltotal)
           ]);
         }
         
