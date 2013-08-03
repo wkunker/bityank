@@ -14,7 +14,7 @@
       // Callback that creates and populates a data table,
       // instantiates the chart, passes in the data and
       // draws it.
-      function drawChart(json_data) {
+      function draw30sChart(json_data) {
         // Create the data table.
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Time');
@@ -50,7 +50,7 @@
           url: '/stats/30s',
           type: "GET",
           success: function(json_data) {
-            drawChart(json_data);
+            draw30sChart(json_data);
           },
           error: function() {
             $('#chat_div').html('Error loading Coinbase statistics -- please wait a moment.');

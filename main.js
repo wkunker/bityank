@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var config = require('./config.js');
 
 var Stats30s;
+var Stats1hr;
 
 // Max number of statistic elements that can be sent through /stats/*
 var numElements = 500;
@@ -46,6 +47,16 @@ app.get('/stats/30s', function(request, response) {
   });
 });
 
+app.get('/stats/1hr', function(request, response) {
+  Stats1hr.find({}, {_id:0, __v:0}, function (err, stats) {
+    if (!err) {
+      response.send(getLastNElements(stats, numElements));
+    } else {
+      response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
+    }
+  });
+});
+
 var port = process.env.PORT || 8080;
 
 app.listen(port, function() {
@@ -57,6 +68,8 @@ app.listen(port, function() {
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', function callback () {
     var statsSchema30s = mongoose.Schema({"time":Number, buytotal: Number, selltotal: Number});
+    var statsSchema1hr = mongoose.Schema({"timestart":Number, "timeend":Number, buytotal: Number, selltotal: Number});
     Stats30s = mongoose.model('stats30s', statsSchema30s);
+    Stats1hr = mongoose.model('stats1hr', statsSchema1hr);
   });
 });
