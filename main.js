@@ -10,7 +10,8 @@ var Stats30s;
 var Stats1hr;
 
 // Max number of statistic elements that can be sent through /stats/*
-var numElements = 500;
+var num30sElements = 360; // 6hr period
+var num1hrElements = 24; // 24hr period
 
 var getLastNElements = function(arr, n) {
   return arr.slice(Math.max(arr.length - n, 0));
@@ -40,7 +41,7 @@ app.get('/', function(request, response) {
 app.get('/stats/30s', function(request, response) {
   Stats30s.find({}, {_id:0, __v:0}, function (err, stats) {
     if (!err) {
-      response.send(getLastNElements(stats, numElements));
+      response.send(getLastNElements(stats, num30sElements));
     } else {
       response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
     }
@@ -50,7 +51,7 @@ app.get('/stats/30s', function(request, response) {
 app.get('/stats/1hr', function(request, response) {
   Stats1hr.find({}, {_id:0, __v:0}, function (err, stats) {
     if (!err) {
-      response.send(getLastNElements(stats, numElements));
+      response.send(getLastNElements(stats, num1hrElements));
     } else {
       response.send("Error: Bityank Coinbase relay down. Please try again shortly.");
     }

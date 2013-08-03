@@ -70,6 +70,19 @@ var loadMarketPrice = function() {
   }
   
   var updateStatistics = function(buyval, sellval) {
+    var timeout;
+    
+    if(isNaN(buyval) || isNaN(sellval) ||
+        buyval === undefined || sellval === undefined ||
+        buyval === null || sellval === null) {
+      var msg = 'updateStatistics: buyval or sellval failed to update. Trying again...';
+      process.stderr.write(msg);
+      console.log(msg);
+      clearTimeout(timeout);
+      loadMarketPrice();
+      throw msg;
+    }
+    
     var stat = {"time": Date.now(), "buytotal": Number(buyval), "selltotal": Number(sellval)};
     var statModel = new Stats30s(stat);
       
@@ -101,7 +114,7 @@ var loadMarketPrice = function() {
     if(err) {
       var buyErrMsg = 'ERROR: failed to check buy exchange price';
       console.log(buyErrMsg);
-      throw new Exception(buyErrMsg);
+      throw buyErrMsg;
     }
     
     buytotal = result;
@@ -112,7 +125,7 @@ var loadMarketPrice = function() {
     if(err) {
       var sellErrMsg = 'ERROR: failed to check sell exchange price';
       console.log(sellErrMsg);
-      throw new Exception(sellErrMsg);
+      throw sellErrMsg;
     }
     
     selltotal = result;
@@ -120,7 +133,7 @@ var loadMarketPrice = function() {
   }
   
   checkTradePrice('buy', checkBuyTradePriceOnComplete);
-  setTimeout(loadMarketPrice, intervalTime);
+  timeout = setTimeout(loadMarketPrice, intervalTime);
 }
 
 app.listen(port, function() {
