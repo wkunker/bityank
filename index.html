@@ -34,7 +34,7 @@
 
         // Set chart options
         var options = {'title':'Coinbase exchange rates over 6hr period',
-                       'width':$(window).width(),
+                       'width':$(window).width() - 25,
                        'height':540,
                        vAxis: {format:'$##.##'},
                        hAxis: {format: "HH:mm:ss"}
@@ -65,7 +65,7 @@
 
         // Set chart options
         var options = {'title':'Coinbase exchange rates over 24hr period',
-                       'width':$(window).width(),
+                       'width':$(window).width() - 25,
                        'height':540,
                        vAxis: {format:'$##.##'},
                        hAxis: {format: "HH:mm:ss"}
@@ -78,7 +78,7 @@
       
       var loadLatest = function() {
         $.ajax({
-          url: '/stats/30s',
+          url: '/stats/30s/6h',
           type: "GET",
           success: function(json_data) {
             draw30sChart(json_data);
@@ -89,7 +89,7 @@
         });
         
         $.ajax({
-          url: '/stats/1hr',
+          url: '/stats/1hr/24h',
           type: "GET",
           success: function(json_data) {
             draw1hrChart(json_data);
@@ -102,9 +102,25 @@
         setTimeout(loadLatest, 30000);
       }
       
+      var reloadReady = true;
+      
       $(function() {
         loadLatest();
       });
+      
+      $(window).resize(function(){
+        if(reloadReady === true) {
+          loadLatest();
+          reloadReady = false;
+          var setReloadReady = function() {
+            loadLatest();
+            reloadReady = true;
+          }
+          setTimeout(function() {
+            setReloadReady();
+          }, 50);
+        }
+      })
     </script>
   </head>
   <body>
