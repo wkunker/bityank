@@ -14,7 +14,7 @@
       // Callback that creates and populates a data table,
       // instantiates the chart, passes in the data and
       // draws it.
-      function draw30sChart(json_data) {
+      function draw30s6hChart(json_data) {
         // Create the data table.
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Time');
@@ -41,11 +41,11 @@
                       };
 
         // Instantiate and draw our chart, passing in some options.
-        var chart = new google.visualization.LineChart(document.getElementById('chart_30s'));
+        var chart = new google.visualization.LineChart(document.getElementById('chart_30s_6h'));
         chart.draw(data, options);
       };
       
-      function draw1hrChart(json_data) {
+      function draw1hr24hChart(json_data) {
         // Create the data table.
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Time');
@@ -72,7 +72,7 @@
                       };
 
         // Instantiate and draw our chart, passing in some options.
-        var chart = new google.visualization.LineChart(document.getElementById('chart_1hr'));
+        var chart = new google.visualization.LineChart(document.getElementById('chart_1hr_24h'));
         chart.draw(data, options);
       };
       
@@ -81,10 +81,10 @@
           url: '/stats/30s/6h',
           type: "GET",
           success: function(json_data) {
-            draw30sChart(json_data);
+            draw30s6hChart(json_data);
           },
           error: function() {
-            $('#chart_30s').html('Error loading Coinbase statistics -- please wait a moment.');
+            $('#chart_30s_6h').html('Error loading Coinbase statistics -- please wait a moment.');
           }
         });
         
@@ -92,10 +92,10 @@
           url: '/stats/1hr/24h',
           type: "GET",
           success: function(json_data) {
-            draw1hrChart(json_data);
+            draw1hr24hChart(json_data);
           },
           error: function() {
-            $('#chart_1hr').html('Error loading Coinbase statistics -- please wait a moment.');
+            $('#chart_1hr_24h').html('Error loading Coinbase statistics -- please wait a moment.');
           }
         });
         
@@ -128,13 +128,15 @@
       <h2>bityank</h2>
     </div>
     <div class='subheading'>
-      bitcoin simplified 
+      dead simple bitcoin investing
     </div>
     
     <div class='statistics'>
-      <div id='chart_30s'>
+      <div id='chart_30s_6h'>
       </div>
-      <div id='chart_1hr'>
+      <div id='chart_1hr_24h'>
+      </div>
+      <div id='chart_1hr_3d'>
       </div>
     </div>
   </body>
