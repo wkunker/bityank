@@ -76,6 +76,37 @@
         chart.draw(data, options);
       };
       
+      function draw1hr3dChart(json_data) {
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Time');
+        data.addColumn('number', 'Buy Total');
+        data.addColumn('number', 'Sell Total');
+        
+        for(var i = 0; i < json_data.length; i++) {
+          var d = new Date(json_data[i].timeend);
+          data.addRow([
+            d, Number(json_data[i].buytotal), Number(json_data[i].selltotal)
+          ]);
+        }
+        
+        // Pattern month day hour (1-24) 
+        var formatter = new google.visualization.DateFormat({ pattern: "MM/dd HH:mm:ss" });
+        formatter.format(data, 0);
+
+        // Set chart options
+        var options = {'title':'Coinbase exchange rates over 3 day period',
+                       'width':$(window).width() - 25,
+                       'height':540,
+                       vAxis: {format:'$##.##'},
+                       hAxis: {format: "HH:mm:ss"}
+                      };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.LineChart(document.getElementById('chart_1hr_3d'));
+        chart.draw(data, options);
+      };
+      
       var loadLatest = function() {
         $.ajax({
           url: '/stats/30s/6h',
@@ -96,6 +127,17 @@
           },
           error: function() {
             $('#chart_1hr_24h').html('Error loading Coinbase statistics -- please wait a moment.');
+          }
+        });
+        
+        $.ajax({
+          url: '/stats/1hr/3d',
+          type: "GET",
+          success: function(json_data) {
+            draw1hr3dChart(json_data);
+          },
+          error: function() {
+            $('#chart_1hr_3d').html('Error loading Coinbase statistics -- please wait a moment.');
           }
         });
         
